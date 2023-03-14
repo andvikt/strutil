@@ -1,10 +1,26 @@
 package metrics
 
 import (
-	"strings"
+	"sync"
 
 	"github.com/adrg/strutil/internal/mathutil"
 )
+
+var DistPool = sync.Pool{
+	New: func() any {
+		r := make([]float64, 0, 128)
+		return &r
+	},
+}
+
+// var v0 = make([]float64, 0, 128)
+// var v1 = make([]float64, 0, 128)
+
+func NewDistVec(size int) *[]float64 {
+	vec := DistPool.Get().(*[]float64)
+	(*vec) = (*vec)[:size]
+	return vec
+}
 
 // SmithWatermanGotoh represents the Smith-Waterman-Gotoh metric for measuring
 // the similarity between sequences.
@@ -45,15 +61,14 @@ func NewSmithWatermanGotoh() *SmithWatermanGotoh {
 // Compare returns the Smith-Waterman-Gotoh similarity of a and b. The returned
 // similarity is a number between 0 and 1. Larger similarity numbers indicate
 // closer matches.
-func (m *SmithWatermanGotoh) Compare(a, b string) float64 {
+func (m *SmithWatermanGotoh) Compare(runesA, runesB []rune) float64 {
 	gap := m.GapPenalty
 
 	// Lower terms if case insensitive comparison is specified.
-	if !m.CaseSensitive {
-		a = strings.ToLower(a)
-		b = strings.ToLower(b)
-	}
-	runesA, runesB := []rune(a), []rune(b)
+	// if !m.CaseSensitive {
+	// 	a = strings.ToLower(a)
+	// 	b = strings.ToLower(b)
+	// }
 
 	// Check if both terms are empty.
 	lenA, lenB := len(runesA), len(runesB)
@@ -79,8 +94,12 @@ func (m *SmithWatermanGotoh) Compare(a, b string) float64 {
 	maxDistance := mathutil.Minf(float64(lenA), float64(lenB)) * mathutil.Maxf(subst.Max(), gap)
 
 	// Calculate distance.
-	v0 := make([]float64, lenB)
-	v1 := make([]float64, lenB)
+	// v0 = v0[:lenB]
+	// v1 = v1[:lenB]
+	_v0 := NewDistVec(lenB)
+	_v1 := NewDistVec(lenB)
+	v0 := *_v0
+	v1 := *_v1
 
 	distance := mathutil.Maxf(0, gap, subst.Compare(runesA, 0, runesB, 0))
 	v0[0] = distance
@@ -103,7 +122,10 @@ func (m *SmithWatermanGotoh) Compare(a, b string) float64 {
 			v0[j] = v1[j]
 		}
 	}
-
+	v0 = v0[:0]
+	v1 = v1[:0]
+	DistPool.Put(_v0)
+	DistPool.Put(_v1)
 	// Return similarity.
 	return distance / maxDistance
 }
