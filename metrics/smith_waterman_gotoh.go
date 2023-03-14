@@ -3,7 +3,7 @@ package metrics
 import (
 	"sync"
 
-	"github.com/adrg/strutil/internal/mathutil"
+	"github.com/andvikt/strutil/internal/mathutil"
 )
 
 var DistPool = sync.Pool{

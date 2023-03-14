@@ -3,7 +3,7 @@ package ngram_test
 import (
 	"testing"
 
-	"github.com/adrg/strutil/internal/ngram"
+	"github.com/andvikt/strutil/internal/ngram"
 	"github.com/stretchr/testify/require"
 )
 

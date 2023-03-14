@@ -1,4 +1,4 @@
-module github.com/adrg/strutil
+module github.com/andvikt/strutil
 
 go 1.18
 

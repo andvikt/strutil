@@ -4,7 +4,7 @@ import (
 	"strings"
 	"unicode/utf8"
 
-	"github.com/adrg/strutil/internal/mathutil"
+	"github.com/andvikt/strutil/internal/mathutil"
 )
 
 // Levenshtein represents the Levenshtein metric for measuring the similarity
